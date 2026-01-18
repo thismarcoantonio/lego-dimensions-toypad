@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useLocalStorage } from '@vueuse/core';
+import { ref } from 'vue';
 
 export enum FilterTypes {
   CHARACTERS = 'Characters',
@@ -7,7 +7,7 @@ export enum FilterTypes {
 }
 
 export const useFiltersStore = defineStore('filters', () => {
-  const type = useLocalStorage('filter-types', FilterTypes.CHARACTERS);
+  const type = ref(FilterTypes.CHARACTERS);
 
   function setType(value: FilterTypes) {
     type.value = value;

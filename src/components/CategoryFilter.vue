@@ -12,7 +12,7 @@
     </div>
   </div>
   <div class="overflow-hidden">
-    <div class="flex gap-2 overflow-x-auto px-4">
+    <div class="flex gap-2 overflow-x-auto px-4 no-scrollbar">
       <button class="px-2 bg-gray-600 rounded-full text-cyan-400">All</button>
       <button class="px-2 bg-gray-600 rounded-full">Favourite</button>
       <button class="px-2 bg-gray-600 rounded-full">Recent</button>
