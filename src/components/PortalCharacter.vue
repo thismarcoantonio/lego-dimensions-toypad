@@ -63,7 +63,8 @@ function handlePadClear() {
 }
 
 const toypadColor = computed(() => {
-  if ([$props.pad.r, $props.pad.g, $props.pad.b].every((color) => color === 0)) return;
+  // If all colors are either 0 or 255, we render the UI color
+  if ([$props.pad.r, $props.pad.g, $props.pad.b].every((color) => [0, 255].includes(color))) return;
   return `rgb(${$props.pad.r}, ${$props.pad.g}, ${$props.pad.b})`;
 });
 
