@@ -1,5 +1,10 @@
 <template>
-  <div ref="elementRef" @pointerdown="handleDragStart" :class="{ dragging: isDragging }">
+  <div
+    ref="elementRef"
+    class="touch-none"
+    :class="{ dragging: isDragging }"
+    @pointerdown="handleDragStart"
+  >
     <li
       class="w-full aspect-square bg-gray-900 relative flex items-center justify-center overflow-hidden rounded"
     >

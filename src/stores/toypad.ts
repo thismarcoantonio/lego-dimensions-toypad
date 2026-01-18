@@ -20,9 +20,6 @@ const horn = [horns[0]];
 const engineSound = [engineSounds[0]];
 const chromeColor = [chromeColors[0]];
 const optionalVehicleAbilities = { guardian: true, spinAttack: true, follower: true };
-const altVehicleColor = false;
-const useVehicleBombs = false;
-const firstLegoReceive = true;
 
 export const useToypadStore = defineStore('toypad', () => {
   const bluetoothStore = useBluetoothStore();

@@ -1,5 +1,5 @@
 <template>
-  <ul class="grid grid-cols-4 gap-3 mt-6 overflow-auto px-4 pb-4">
+  <ul class="grid grid-cols-4 gap-3 mt-6 px-4 pb-4">
     <template v-if="filtersStore.type === FilterTypes.CHARACTERS">
       <main-list-character v-for="minifig in minifigs" :key="minifig.id" :character="minifig" />
     </template>
