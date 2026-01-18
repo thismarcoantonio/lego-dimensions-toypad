@@ -68,6 +68,7 @@ export const useBluetoothStore = defineStore('bluetooth', () => {
               toypad.type = packets[i]!.data[j * 4 + 9]!;
               if (toypad.type !== ToypadPadType.NONE) {
                 const id = (packets[i]!.data[j * 4 + 10]! << 8) + packets[i]!.data[j * 4 + 11]!;
+                toypad.uid = j;
                 if (toypad.type === ToypadPadType.MINIFIG) toypad.minifigId = id;
                 if (toypad.type === ToypadPadType.VEHICLE) toypad.vehicleId = id;
               } else {

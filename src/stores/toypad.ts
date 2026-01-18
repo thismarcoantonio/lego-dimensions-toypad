@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useBluetoothStore } from './bluetooth';
 import { ToypadPadType, type ToypadPad } from '@/types/Toypad';
 import type { Character } from '@/types/Character';
@@ -26,14 +26,14 @@ export const useToypadStore = defineStore('toypad', () => {
   const bluetoothStore = useBluetoothStore();
 
   const pads = ref<ToypadPad[]>(
-    Array.from({ length: 7 }, (_, index) => ({
+    Array.from({ length: 7 }, () => ({
       r: 0,
       g: 0,
       b: 0,
       minifigId: 0,
       vehicleId: 0,
       type: ToypadPadType.NONE,
-      uid: index,
+      uid: 0,
     })),
   );
 
@@ -88,30 +88,39 @@ export const useToypadStore = defineStore('toypad', () => {
       type: ToypadPadType.NONE,
       minifigId: 0,
       vehicleId: 0,
+      uid: 0,
     };
 
     await onPadChange(padId);
   }
 
-  function updateToypadMinifig(padId: number, minifig: Character) {
-    if (!pads.value[padId]) return;
-    pads.value[padId] = {
-      ...pads.value[padId],
+  const nextUsableUid = computed(() => {
+    const padUids = pads.value.map((pad) => pad.uid);
+    const allUids = Array.from({ length: 7 }, (_, index) => index + 1);
+    return allUids.find((uid) => !padUids.includes(uid)) || 0;
+  });
+
+  function updateToypadMinifig(padIndex: number, minifigId: Character['id'], uid?: number) {
+    if (!pads.value[padIndex]) return;
+    pads.value[padIndex] = {
+      ...pads.value[padIndex],
       type: ToypadPadType.MINIFIG,
-      minifigId: minifig.id,
+      minifigId,
+      uid: uid ?? nextUsableUid.value,
     };
-    onPadChange(padId);
+    onPadChange(padIndex);
   }
 
-  function updateToypadVehicle(padId: number, vehicle: Vehicle) {
-    if (!pads.value[padId]) return;
-    pads.value[padId] = {
-      ...pads.value[padId],
+  function updateToypadVehicle(padIndex: number, vehicleId: Vehicle['id'], uid?: number) {
+    if (!pads.value[padIndex]) return;
+    pads.value[padIndex] = {
+      ...pads.value[padIndex],
       type: ToypadPadType.VEHICLE,
       minifigId: 0,
-      vehicleId: vehicle.id,
+      vehicleId,
+      uid: uid ?? nextUsableUid.value,
     };
-    onPadChange(padId);
+    onPadChange(padIndex);
   }
 
   function updatePadColor(index: number, colors: { r: number; g: number; b: number }) {

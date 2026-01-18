@@ -17,66 +17,97 @@
     >
       <x-icon :size="rounded ? 16 : 14" />
     </button>
-    <img
-      v-if="toypadCharacter"
-      :src="`/minifigs/${String(toypadCharacter?.id).padStart(2, '0')}.webp`"
-      class="absolute object-cover"
-    />
+    <div
+      v-show="toypadCharacter"
+      ref="elementRef"
+      class="touch-none absolute"
+      :class="{ dragging: isDragging }"
+      @pointerdown="handleDragStart"
+    >
+      <img
+        :src="`/minifigs/${String(toypadCharacter?.id).padStart(2, '0')}.webp`"
+        class="object-cover"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { useDroppable } from '@vue-dnd-kit/core';
+import { useDroppable, useDraggable } from '@vue-dnd-kit/core';
 import { XIcon } from 'lucide-vue-next';
 import { useToypadStore } from '@/stores/toypad';
-import type { ToypadPad } from '@/types/Toypad';
 import minifigs from '@/data/minifigs';
 import vehicles from '@/data/vehicles';
 
 const $props = defineProps<{
-  pad: ToypadPad;
+  padIndex: number;
   rounded?: boolean;
 }>();
 
 const toypadStore = useToypadStore();
 
+const toypad = computed(() => toypadStore.pads[$props.padIndex] || toypadStore.pads[0]);
+
 const { elementRef: dropzoneRef, isOvered } = useDroppable({
   events: {
-    onDrop: (store, payload) => {
+    onDrop: async (store, payload) => {
       const data = payload.items[0]?.data;
-      if (!data) return;
+      if (!data) return false;
 
+      // Add new character
       if (data.character) {
-        toypadStore.updateToypadMinifig($props.pad.uid, data.character);
+        toypadStore.updateToypadMinifig($props.padIndex, data.character.id);
       }
 
+      // Add new vehicle
       if (data.vehicle) {
-        toypadStore.updateToypadVehicle($props.pad.uid, data.vehicle);
+        toypadStore.updateToypadVehicle($props.padIndex, data.vehicle.id);
       }
+
+      // Move from another pad
+      if (data.padIndex != null) {
+        const toypad = toypadStore.pads[data.padIndex]!;
+        const minifigId = toypad.minifigId;
+        const vehicleId = toypad.vehicleId;
+        const uid = toypad.uid;
+        await toypadStore.clearPad(data.padIndex);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        if (minifigId) toypadStore.updateToypadMinifig($props.padIndex, minifigId, uid);
+        if (vehicleId) toypadStore.updateToypadVehicle($props.padIndex, vehicleId, uid);
+      }
+
+      return true;
     },
   },
 });
 
-function handlePadClear() {
-  toypadStore.clearPad($props.pad.uid);
-}
-
-const toypadColor = computed(() => {
-  // If all colors are either 0 or 255, we render the UI color
-  if ([$props.pad.r, $props.pad.g, $props.pad.b].every((color) => [0, 255].includes(color))) return;
-  return `rgb(${$props.pad.r}, ${$props.pad.g}, ${$props.pad.b})`;
-});
-
 const toypadCharacter = computed(() => {
-  if ($props.pad.minifigId) {
-    return minifigs.find((minifig) => minifig.id === $props.pad.minifigId);
+  if (toypad.value?.minifigId) {
+    return minifigs.find((minifig) => minifig.id === toypad.value?.minifigId);
   }
 
-  if ($props.pad.vehicleId) {
-    return vehicles.find((vehicle) => vehicle.id === $props.pad.vehicleId);
+  if (toypad.value?.vehicleId) {
+    return vehicles.find((vehicle) => vehicle.id === toypad.value?.vehicleId);
   }
 
   return null;
+});
+
+const { elementRef, isDragging, handleDragStart } = useDraggable({
+  id: 'toypad-draggable',
+  data: { padIndex: $props.padIndex },
+});
+
+function handlePadClear() {
+  toypadStore.clearPad($props.padIndex);
+}
+
+const toypadColor = computed(() => {
+  const { r, g, b } = toypad.value || { r: 0, g: 0, b: 0 };
+  // If all colors are either 0 or 255, we render the UI color
+  if ([r, g, b].every((color) => [0, 255].includes(color))) return;
+  return `rgb(${r}, ${g}, ${b})`;
 });
 </script>
