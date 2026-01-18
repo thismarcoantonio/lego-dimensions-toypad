@@ -75,46 +75,19 @@ export const useToypadStore = defineStore('toypad', () => {
 
     // Send change packet to Toypad
     await bluetoothStore.sendRawSettingPacket(changePacket);
-
-    // $scope.updateViableMinifigs();
-    // $scope.updateViableVehicles();
-    // $scope.getDropTargets();
   }
 
   async function clearPad(padIndex: number) {
     const currentPad = pads[padIndex];
     if (!currentPad) return;
 
-    // TODO: Update recent minifigs
-    if (currentPad.type === ToypadPadType.MINIFIG) {
-      // for (var i = 0; i < $scope.recentMinifigs.length; i++) {
-      //   if ($scope.recentMinifigs[i] == $scope.legoDimensionsPads[index].minifigId) {
-      //     $scope.recentMinifigs.splice(i, 1);
-      //     break;
-      //   }
-      // }
-      // $scope.recentMinifigs.unshift($scope.legoDimensionsPads[index].minifigId);
-    }
-
-    // TODO: Update recent vehicles
-    if (currentPad.type === ToypadPadType.VEHICLE) {
-      // for (var i = 0; i < $scope.recentVehicles.length; i++) {
-      //   if ($scope.recentVehicles[i] == $scope.legoDimensionsPads[index].vehicleId) {
-      //     $scope.recentVehicles.splice(i, 1);
-      //     break;
-      //   }
-      // }
-      // $scope.recentVehicles.unshift($scope.legoDimensionsPads[index].vehicleId);
-    }
-
     currentPad.type = ToypadPadType.NONE;
     currentPad.vehicleId = 0;
     currentPad.minifigId = 0;
     currentPad.uid = 0;
     pads[padIndex] = currentPad;
+
     await onPadChange(padIndex);
-    // $scope.legoDimensionsVehicleOptionsOnPage[index] = $scope.vehiclePlaceholder;
-    // $scope.legoDimensionsMinifigOptionsOnPage[index] = $scope.minifigPlaceholder;
   }
 
   function updateToypadMinifig(toypadIndex: number, minifig: Character) {

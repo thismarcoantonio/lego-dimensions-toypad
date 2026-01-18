@@ -8,7 +8,7 @@
       v-if="active"
       class="absolute z-10 top-1 right-1 bg-slate-600 rounded-full p-1"
       :class="{ 'top-6 right-6': rounded }"
-      @click="active = undefined"
+      @click="handlePadClear"
     >
       <x-icon :size="rounded ? 16 : 14" />
     </button>
@@ -55,4 +55,9 @@ const { elementRef: dropzoneRef, isOvered } = useDroppable({
     },
   },
 });
+
+function handlePadClear() {
+  active.value = undefined;
+  toypadStore.clearPad($props.pad.uid);
+}
 </script>
