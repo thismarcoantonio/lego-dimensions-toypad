@@ -24,11 +24,16 @@
 import { ref } from 'vue';
 import { useDroppable } from '@vue-dnd-kit/core';
 import { XIcon } from 'lucide-vue-next';
+import { useToypadStore } from '@/stores/toypad';
 import type { Character } from '@/types/Character';
+import type { ToypadPad } from '@/types/Toypad';
 
-defineProps<{
+const $props = defineProps<{
+  pad: ToypadPad;
   rounded?: boolean;
 }>();
+
+const toypadStore = useToypadStore();
 
 const active = ref<Character>();
 
@@ -40,6 +45,12 @@ const { elementRef: dropzoneRef, isOvered } = useDroppable({
 
       if (data.character) {
         active.value = data.character;
+        toypadStore.updateToypadMinifig($props.pad.uid, data.character);
+      }
+
+      if (data.vehicle) {
+        active.value = data.vehicle;
+        toypadStore.updateToypadVehicle($props.pad.uid, data.vehicle);
       }
     },
   },

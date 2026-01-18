@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { useBluetoothStore } from './bluetooth';
 import { ToypadPadType, type ToypadPad } from '@/types/Toypad';
+import type { Character } from '@/types/Character';
+import type { Vehicle } from '@/types/Vehicle';
 
 const colors = ['Default', 'Red', 'Green', 'Blue', 'Yellow', 'Orange', 'Pink', 'White', 'Purple'];
 const weapons = ['None', 'Bolts', 'Mines', 'Spinning Weapon', 'Swarm Weapon'];
@@ -25,14 +27,14 @@ const firstLegoReceive = true;
 export const useToypadStore = defineStore('toypad', () => {
   const bluetoothStore = useBluetoothStore();
 
-  const pads: ToypadPad[] = Array.from({ length: 7 }, () => ({
+  const pads: ToypadPad[] = Array.from({ length: 7 }, (_, index) => ({
     r: 0,
     g: 0,
     b: 0,
     minifigId: 0,
     vehicleId: 0,
     type: ToypadPadType.NONE,
-    uid: 0,
+    uid: index,
   }));
 
   async function onPadChange(padIndex: number) {
@@ -118,9 +120,26 @@ export const useToypadStore = defineStore('toypad', () => {
     // $scope.legoDimensionsMinifigOptionsOnPage[index] = $scope.minifigPlaceholder;
   }
 
+  function updateToypadMinifig(toypadIndex: number, minifig: Character) {
+    if (!pads[toypadIndex]) return;
+    pads[toypadIndex].type = ToypadPadType.MINIFIG;
+    pads[toypadIndex].minifigId = minifig.id;
+    pads[toypadIndex].uid = toypadIndex;
+    onPadChange(toypadIndex);
+  }
+
+  function updateToypadVehicle(toypadIndex: number, vehicle: Vehicle) {
+    if (!pads[toypadIndex]) return;
+    pads[toypadIndex].type = ToypadPadType.VEHICLE;
+    pads[toypadIndex].vehicleId = vehicle.id;
+    pads[toypadIndex].uid = toypadIndex;
+    onPadChange(toypadIndex);
+  }
+
   return {
     pads,
-    onPadChange,
+    updateToypadMinifig,
+    updateToypadVehicle,
     clearPad,
   };
 });
