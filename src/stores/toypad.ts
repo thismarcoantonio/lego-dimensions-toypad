@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 import { useBluetoothStore } from './bluetooth';
 import { ToypadPadType, type ToypadPad } from '@/types/Toypad';
 import type { Character } from '@/types/Character';
@@ -24,19 +25,21 @@ const optionalVehicleAbilities = { guardian: true, spinAttack: true, follower: t
 export const useToypadStore = defineStore('toypad', () => {
   const bluetoothStore = useBluetoothStore();
 
-  const pads: ToypadPad[] = Array.from({ length: 7 }, (_, index) => ({
-    r: 0,
-    g: 0,
-    b: 0,
-    minifigId: 0,
-    vehicleId: 0,
-    type: ToypadPadType.NONE,
-    uid: index,
-  }));
+  const pads = ref<ToypadPad[]>(
+    Array.from({ length: 7 }, (_, index) => ({
+      r: 0,
+      g: 0,
+      b: 0,
+      minifigId: 0,
+      vehicleId: 0,
+      type: ToypadPadType.NONE,
+      uid: index,
+    })),
+  );
 
   async function onPadChange(padIndex: number) {
     const changePacket = [0x60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    const currentPad = pads[padIndex];
+    const currentPad = pads.value[padIndex];
 
     if (!currentPad) return;
 
@@ -77,33 +80,55 @@ export const useToypadStore = defineStore('toypad', () => {
     await bluetoothStore.sendRawSettingPacket(changePacket);
   }
 
-  async function clearPad(padIndex: number) {
-    const currentPad = pads[padIndex];
-    if (!currentPad) return;
+  async function clearPad(padId: number) {
+    if (!pads.value[padId]) return;
 
-    currentPad.type = ToypadPadType.NONE;
-    currentPad.vehicleId = 0;
-    currentPad.minifigId = 0;
-    currentPad.uid = 0;
-    pads[padIndex] = currentPad;
+    pads.value[padId] = {
+      ...pads.value[padId],
+      type: ToypadPadType.NONE,
+      minifigId: 0,
+      vehicleId: 0,
+    };
 
-    await onPadChange(padIndex);
+    await onPadChange(padId);
   }
 
-  function updateToypadMinifig(toypadIndex: number, minifig: Character) {
-    if (!pads[toypadIndex]) return;
-    pads[toypadIndex].type = ToypadPadType.MINIFIG;
-    pads[toypadIndex].minifigId = minifig.id;
-    pads[toypadIndex].uid = toypadIndex;
-    onPadChange(toypadIndex);
+  function updateToypadMinifig(padId: number, minifig: Character) {
+    if (!pads.value[padId]) return;
+    pads.value[padId] = {
+      ...pads.value[padId],
+      type: ToypadPadType.MINIFIG,
+      minifigId: minifig.id,
+    };
+    onPadChange(padId);
   }
 
-  function updateToypadVehicle(toypadIndex: number, vehicle: Vehicle) {
-    if (!pads[toypadIndex]) return;
-    pads[toypadIndex].type = ToypadPadType.VEHICLE;
-    pads[toypadIndex].vehicleId = vehicle.id;
-    pads[toypadIndex].uid = toypadIndex;
-    onPadChange(toypadIndex);
+  function updateToypadVehicle(padId: number, vehicle: Vehicle) {
+    if (!pads.value[padId]) return;
+    pads.value[padId] = {
+      ...pads.value[padId],
+      type: ToypadPadType.VEHICLE,
+      minifigId: 0,
+      vehicleId: vehicle.id,
+    };
+    onPadChange(padId);
+  }
+
+  function updatePadColor(index: number, colors: { r: number; g: number; b: number }) {
+    if (!pads.value[index]) return;
+    pads.value[index].r = colors.r;
+    pads.value[index].g = colors.g;
+    pads.value[index].b = colors.b;
+  }
+
+  function updatePadColors(colors: { r: number; g: number; b: number }[]) {
+    updatePadColor(0, colors[0]!);
+    updatePadColor(1, colors[1]!);
+    updatePadColor(2, colors[1]!);
+    updatePadColor(3, colors[1]!);
+    updatePadColor(4, colors[2]!);
+    updatePadColor(5, colors[2]!);
+    updatePadColor(6, colors[2]!);
   }
 
   return {
@@ -111,5 +136,6 @@ export const useToypadStore = defineStore('toypad', () => {
     updateToypadMinifig,
     updateToypadVehicle,
     clearPad,
+    updatePadColors,
   };
 });
